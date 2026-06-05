@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Налоговый тренажер — Оптимизация 2027</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f2f6fc;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            padding: 24px 16px;
+            color: #1a3448;
+        }
+
+        .trainer-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(149, 202, 250, 0.4);
+        }
+
+        /* компактное задание */
+        .task-header {
+            margin-bottom: 16px;
+        }
+        .task-header p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+        .forecast-title {
+            font-weight: 600;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #2c5a7a;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 8px 0 12px;
+            font-size: 0.8rem;
+        }
+        .info-table th, .info-table td {
+            border: 1px solid #e2edf7;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .info-table th {
+            background: #f1f7fd;
+            font-weight: 600;
+            color: #1e5680;
+        }
+        .amount {
+            font-weight: 700;
+            color: #0d3b54;
+        }
+        .conditions-text {
+            font-size: 0.8rem;
+            margin: 12px 0 4px;
+            line-height: 1.4;
+            color: #2c5a7a;
+        }
+        .conditions-text strong {
+            color: #1a5a7a;
+        }
+
+        /* компактная таблица расчетов */
+        .calc-wrapper {
+            overflow-x: auto;
+            margin: 16px 0 8px;
+            border-radius: 16px;
+        }
+        .calc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+            background: white;
+            border-radius: 16px;
+            table-layout: fixed;
+        }
+        .calc-table th, .calc-table td {
+            border: 1px solid #dce8f2;
+            padding: 6px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .calc-table th {
+            background: #eef3fc;
+            font-weight: 700;
+            color: #1b5a80;
+            font-size: 0.68rem;
+            padding: 6px 3px;
+        }
+        .input-cell input {
+            width: 95px;
+            padding: 5px 3px;
+            border-radius: 12px;
+            border: 1.5px solid #caddf0;
+            text-align: center;
+            font-weight: 500;
+            font-family: inherit;
+            font-size: 0.68rem;
+            background: #fff;
+            transition: all 0.1s;
+        }
+        .input-cell input:focus {
+            outline: none;
+            border-color: #5fa3cf;
+            box-shadow: 0 0 0 2px rgba(95,163,207,0.2);
+        }
+        .input-cell input.error-input {
+            border-color: #e06c6c;
+            background-color: #fff6f5;
+            box-shadow: 0 0 0 1px #e06c6c;
+        }
+        .fixed-cell {
+            background: #fafdff;
+            font-weight: 600;
+            font-size: 0.68rem;
+        }
+        .clickable-row {
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        .clickable-row:hover {
+            background: #f0f7fe;
+        }
+        .row-selected {
+            background: #e1f0fe;
+            border-left: 3px solid #1c6f9e;
+            box-shadow: inset 0 0 0 1px #bdddf5;
+        }
+        .action-area {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            border: none;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: #1f6f9b;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0e577f;
+        }
+        .btn-secondary {
+            background: #eef2f8;
+            color: #2b5c7c;
+            border: 1px solid #caddf0;
+        }
+        .btn-secondary:hover {
+            background: #e2eaf3;
+        }
+        .feedback-area {
+            margin-top: 16px;
+            padding: 10px 16px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        .progress-card {
+            background: white;
+            border-radius: 24px;
+            padding: 16px 20px;
+            border: 1px solid #d4e4f0;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .progress-bar {
+            background: #e2ebf3;
+            border-radius: 30px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #2c7cb6;
+            width: 0%;
+            height: 100%;
+            border-radius: 30px;
+            transition: width 0.4s ease;
+        }
+        .progress-message {
+            font-size: 0.7rem;
+            margin-top: 8px;
+            color: #527a99;
+        }
+        .small-note {
+            font-size: 0.65rem;
+            color: #6f8faa;
+            margin-top: 8px;
+            text-align: right;
+        }
+        .result-btn {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .result-btn .btn {
+            background: #2b7a5c;
+        }
+        .result-btn .btn:hover {
+            background: #1e5e46;
+        }
+        .lightbulb-hint {
+            background: #fff8e7;
+            border-radius: 20px;
+            margin-top: 16px;
+            padding: 8px 16px;
+            border-left: 4px solid #f5b042;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            cursor: pointer;
+        }
+        .lightbulb-icon {
+            font-size: 1.3rem;
+        }
+        .lightbulb-content span {
+            font-weight: 500;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 950px;
+            max-height: 85vh;
+            overflow: auto;
+            padding: 20px 24px;
+            position: relative;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eef3fc;
+        }
+        .modal-header h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1c6f9e;
+        }
+        .close-modal {
+            font-size: 26px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #8aaec0;
+            line-height: 1;
+        }
+        .close-modal:hover {
+            color: #1c6f9e;
+        }
+        .correct-table-modal {
+            overflow-x: auto;
+        }
+        .correct-table-modal table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+            background: #ffffff;
+        }
+        .correct-table-modal th, .correct-table-modal td {
+            border: 1px solid #dce8f2;
+            padding: 6px 5px;
+            text-align: center;
+        }
+        .correct-table-modal th {
+            background: #eef3fc;
+            font-weight: 700;
+        }
+        @media (max-width: 700px) {
+            .input-cell input { width: 80px; font-size: 0.62rem; }
+            .calc-table th, .calc-table td { padding: 4px 2px; font-size: 0.62rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="trainer-container">
+    <!-- КОМПАКТНОЕ ЗАДАНИЕ (без желтой подложки) -->
+    <div class="card">
+        <div class="task-header">
+            <p>К вам обратился Иван Петрович, владелец строительно-монтажной компании.<br>
+            Он хочет провести налоговый аудит и выбрать наиболее выгодную систему налогообложения на 2027 год.</p>
+        </div>
+        <div class="forecast-title">Прогноз на 2027 год:</div>
+        <table class="info-table">
+            <thead><tr><th>Показатель</th><th>Сумма на год</th></tr></thead>
+            <tbody>
+                <tr><td>Выручка с НДС</td><td class="amount">200 000 000 руб.</td></tr>
+                <tr><td>Расходы, которые можно принять к налоговому учету (без НДС)</td><td class="amount">40 000 000 руб.</td></tr>
+                <tr><td>ФОТ</td><td class="amount">20 000 000 руб.</td></tr>
+            </tbody>
+        </table>
+        <div class="conditions-text">
+            Сейчас компания находится на общей системе налогообложения и платит страховые взносы по ставке 30%. 
+            Сумма подтвержденного НДС, который можно принять к вычету, составляет <strong>6 210 000 руб.</strong><br>
+            Рассчитайте выгодный режим налогообложения на 2027 год.
+        </div>
+    </div>
+
+    <!-- Таблица расчетов (компактная) -->
+    <div class="card">
+        <div class="calc-wrapper">
+            <table class="calc-table" id="taxTable">
+                <thead>
+                    <tr><th>Система налогообложения</th><th>НДС к уплате (руб.)</th><th>УСН / Налог на прибыль (руб.)</th><th>Страховые взносы (руб.)</th><th>ИТОГО платежей (руб.)</th></tr>
+                </thead>
+                <tbody>
+                    <tr data-system="osno" class="clickable-row"><td class="fixed-cell"><strong>ОСНО</strong></td>
+                        <td class="input-cell"><input type="text" id="osno_nds" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="osno_profit" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="osno_ins" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="osno_total" autocomplete="off"></td>
+                    </tr>
+                    <tr data-system="usn6_5" class="clickable-row"><td class="fixed-cell"><strong>УСН «Доходы» 6% + НДС 5%</strong></td>
+                        <td class="input-cell"><input type="text" id="usn6_5_nds" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn6_5_tax" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn6_5_ins" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn6_5_total" autocomplete="off"></td>
+                    </tr>
+                    <tr data-system="usn6_22" class="clickable-row"><td class="fixed-cell"><strong>УСН «Доходы» 6% + НДС 22%</strong></td>
+                        <td class="input-cell"><input type="text" id="usn6_22_nds" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn6_22_tax" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn6_22_ins" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn6_22_total" autocomplete="off"></td>
+                    </tr>
+                    <tr data-system="usn15_5" class="clickable-row"><td class="fixed-cell"><strong>УСН «Доходы-Расходы» 15% + НДС 5%</strong></td>
+                        <td class="input-cell"><input type="text" id="usn15_5_nds" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn15_5_tax" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn15_5_ins" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn15_5_total" autocomplete="off"></td>
+                    </tr>
+                    <tr data-system="usn15_22" class="clickable-row"><td class="fixed-cell"><strong>УСН «Доходы-Расходы» 15% + НДС 22%</strong></td>
+                        <td class="input-cell"><input type="text" id="usn15_22_nds" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn15_22_tax" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn15_22_ins" autocomplete="off"></td>
+                        <td class="input-cell"><input type="text" id="usn15_22_total" autocomplete="off"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="small-note">
+            💡 Заполните все ячейки, затем кликните на строку с режимом, который считаете лучшим. Нажмите «Проверить».
+        </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="action-area">
+        <button class="btn btn-primary" id="checkBtn">Проверить</button>
+        <button class="btn btn-secondary" id="resetBtn">Начать заново</button>
+    </div>
+    <div id="globalFeedback" class="feedback-area" style="background: #f8fafd;"></div>
+    
+    <!-- Лампочка-подсказка -->
+    <div id="lightbulbHint" class="lightbulb-hint" style="display: none;">
+        <div class="lightbulb-icon">💡</div>
+        <div class="lightbulb-content">
+            <span>Посмотреть верный расчет</span>
+        </div>
+    </div>
+
+    <!-- Кнопка показа результата -->
+    <div id="resultBtnContainer" class="result-btn">
+        <button class="btn" id="showResultBtn">Посмотреть результат</button>
+    </div>
+
+    <!-- Шкала прогресса -->
+    <div class="progress-card">
+        <div class="progress-label">
+            <span>Прогресс курса «Выбираем способы налоговой экономии, которые не нарушают закон»</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-message" id="progressMessage"></div>
+    </div>
+</div>
+
+<!-- Модальное окно с верной таблицей -->
+<div id="correctModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Правильный ответ</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="correct-table-modal" id="modalTableContainer"></div>
+    </div>
+</div>
+
+<script>
+    const correctData = {
+        osno: { nds: 29855574, tax: 24483607, ins: 6000000, total: 60339181 },
+        usn6_5: { nds: 9523810, tax: 5714285, ins: 6000000, total: 21238095 },
+        usn6_22: { nds: 29855574, tax: 4918033, ins: 6000000, total: 40773607 },
+        usn15_5: { nds: 9523810, tax: 18671429, ins: 6000000, total: 34195239 },
+        usn15_22: { nds: 29855574, tax: 14690164, ins: 6000000, total: 50545738 }
+    };
+    const BEST_SYSTEM_KEY = "usn6_5";
+    let selectedSystem = null;
+    let progressFilled = false;
+    let lastCheckSuccess = false;
+
+    const fields = {
+        osno_nds: document.getElementById('osno_nds'), osno_profit: document.getElementById('osno_profit'),
+        osno_ins: document.getElementById('osno_ins'), osno_total: document.getElementById('osno_total'),
+        usn6_5_nds: document.getElementById('usn6_5_nds'), usn6_5_tax: document.getElementById('usn6_5_tax'),
+        usn6_5_ins: document.getElementById('usn6_5_ins'), usn6_5_total: document.getElementById('usn6_5_total'),
+        usn6_22_nds: document.getElementById('usn6_22_nds'), usn6_22_tax: document.getElementById('usn6_22_tax'),
+        usn6_22_ins: document.getElementById('usn6_22_ins'), usn6_22_total: document.getElementById('usn6_22_total'),
+        usn15_5_nds: document.getElementById('usn15_5_nds'), usn15_5_tax: document.getElementById('usn15_5_tax'),
+        usn15_5_ins: document.getElementById('usn15_5_ins'), usn15_5_total: document.getElementById('usn15_5_total'),
+        usn15_22_nds: document.getElementById('usn15_22_nds'), usn15_22_tax: document.getElementById('usn15_22_tax'),
+        usn15_22_ins: document.getElementById('usn15_22_ins'), usn15_22_total: document.getElementById('usn15_22_total')
+    };
+
+    function clearAllErrors() {
+        for (let key in fields) if (fields[key]) fields[key].classList.remove('error-input');
+    }
+    function highlightErrors() {
+        clearAllErrors();
+        for (const [key, cor] of Object.entries(correctData)) {
+            let n, t, i, tot;
+            if (key === 'osno') { n=fields.osno_nds; t=fields.osno_profit; i=fields.osno_ins; tot=fields.osno_total; }
+            else if (key === 'usn6_5') { n=fields.usn6_5_nds; t=fields.usn6_5_tax; i=fields.usn6_5_ins; tot=fields.usn6_5_total; }
+            else if (key === 'usn6_22') { n=fields.usn6_22_nds; t=fields.usn6_22_tax; i=fields.usn6_22_ins; tot=fields.usn6_22_total; }
+            else if (key === 'usn15_5') { n=fields.usn15_5_nds; t=fields.usn15_5_tax; i=fields.usn15_5_ins; tot=fields.usn15_5_total; }
+            else if (key === 'usn15_22') { n=fields.usn15_22_nds; t=fields.usn15_22_tax; i=fields.usn15_22_ins; tot=fields.usn15_22_total; }
+            else continue;
+            const nv = parseFloat(n.value.replace(/\s/g,'')); const tv = parseFloat(t.value.replace(/\s/g,''));
+            const iv = parseFloat(i.value.replace(/\s/g,'')); const totv = parseFloat(tot.value.replace(/\s/g,''));
+            if (isNaN(nv) || Math.abs(nv - cor.nds) > 0.5) n.classList.add('error-input');
+            if (isNaN(tv) || Math.abs(tv - cor.tax) > 0.5) t.classList.add('error-input');
+            if (isNaN(iv) || Math.abs(iv - cor.ins) > 0.5) i.classList.add('error-input');
+            if (isNaN(totv) || Math.abs(totv - cor.total) > 0.5) tot.classList.add('error-input');
+        }
+    }
+    function isAllCalculationsCorrect() {
+        for (const [key, cor] of Object.entries(correctData)) {
+            let n,t,i,tot;
+            if (key === 'osno') { n=fields.osno_nds; t=fields.osno_profit; i=fields.osno_ins; tot=fields.osno_total; }
+            else if (key === 'usn6_5') { n=fields.usn6_5_nds; t=fields.usn6_5_tax; i=fields.usn6_5_ins; tot=fields.usn6_5_total; }
+            else if (key === 'usn6_22') { n=fields.usn6_22_nds; t=fields.usn6_22_tax; i=fields.usn6_22_ins; tot=fields.usn6_22_total; }
+            else if (key === 'usn15_5') { n=fields.usn15_5_nds; t=fields.usn15_5_tax; i=fields.usn15_5_ins; tot=fields.usn15_5_total; }
+            else if (key === 'usn15_22') { n=fields.usn15_22_nds; t=fields.usn15_22_tax; i=fields.usn15_22_ins; tot=fields.usn15_22_total; }
+            else continue;
+            const nv = parseFloat(n.value.replace(/\s/g,'')); const tv = parseFloat(t.value.replace(/\s/g,''));
+            const iv = parseFloat(i.value.replace(/\s/g,'')); const totv = parseFloat(tot.value.replace(/\s/g,''));
+            if (isNaN(nv) || isNaN(tv) || isNaN(iv) || isNaN(totv)) return false;
+            if (Math.abs(nv - cor.nds) > 0.5) return false;
+            if (Math.abs(tv - cor.tax) > 0.5) return false;
+            if (Math.abs(iv - cor.ins) > 0.5) return false;
+            if (Math.abs(totv - cor.total) > 0.5) return false;
+        }
+        return true;
+    }
+    function clearRowSelection() { document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('row-selected')); }
+    function highlightRow(sys) {
+        clearRowSelection();
+        document.querySelectorAll('.clickable-row').forEach(r => { if(r.getAttribute('data-system')===sys) r.classList.add('row-selected'); });
+    }
+    function attachRowClick() {
+        document.querySelectorAll('.clickable-row').forEach(r => {
+            r.addEventListener('click', (e) => {
+                if(e.target.tagName==='INPUT') return;
+                selectedSystem = r.getAttribute('data-system');
+                highlightRow(selectedSystem);
+                document.getElementById('globalFeedback').innerHTML = `Выбран режим: ${r.querySelector('td:first-child')?.innerText.trim()}`;
+                document.getElementById('globalFeedback').style.background = "#f0f7fe";
+            });
+        });
+    }
+    function renderCorrectTable() {
+        const container = document.getElementById('modalTableContainer');
+        if(!container) return;
+        let html = '<table><thead><tr><th>Система</th><th>НДС</th><th>УСН/Прибыль</th><th>Взносы</th><th>ИТОГО</th></tr></thead><tbody>';
+        const labels = { osno:'ОСНО', usn6_5:'УСН Доходы 6% + НДС 5%', usn6_22:'УСН Доходы 6% + НДС 22%', usn15_5:'УСН Доходы-Расходы 15% + НДС 5%', usn15_22:'УСН Доходы-Расходы 15% + НДС 22%' };
+        for(let [k,v] of Object.entries(correctData)) {
+            html += `<tr><td style="text-align:left"><strong>${labels[k]}</strong></td><td>${v.nds.toLocaleString('ru-RU')}</td><td>${v.tax.toLocaleString('ru-RU')}</td><td>${v.ins.toLocaleString('ru-RU')}</td><td><strong>${v.total.toLocaleString('ru-RU')}</strong></td></tr>`;
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+    function openModal() { renderCorrectTable(); document.getElementById('correctModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('correctModal').style.display = 'none'; }
+    function checkSolution() {
+        const calcOk = isAllCalculationsCorrect();
+        const bestSelected = (selectedSystem === BEST_SYSTEM_KEY);
+        const fb = document.getElementById('globalFeedback');
+        const resBtn = document.getElementById('resultBtnContainer');
+        const bulb = document.getElementById('lightbulbHint');
+        highlightErrors();
+        if (!calcOk || !bestSelected) {
+            fb.innerHTML = !calcOk ? 'Проверьте расчеты и заполните заново.' : 'Неверно: выбранный режим не является оптимальным. Самый выгодный — УСН «Доходы» 6% + НДС 5%.';
+            fb.style.background = '#ffe6e2'; fb.style.color = '#ac3c2f';
+            lastCheckSuccess = false; resBtn.style.display = 'none'; bulb.style.display = 'flex';
+            return;
+        }
+        fb.innerHTML = 'Вы все рассчитали верно и выбрали оптимальный режим: УСН «Доходы» 6% + НДС 5%. Налоговая нагрузка минимальна.';
+        fb.style.background = '#dff0e3'; fb.style.color = '#1c6f2f';
+        lastCheckSuccess = true; resBtn.style.display = 'block'; bulb.style.display = 'none';
+        if (!progressFilled) {
+            progressFilled = true;
+            document.getElementById('progressFill').style.width = '33%';
+            document.getElementById('progressPercent').innerText = '33%';
+            document.getElementById('progressMessage').innerHTML = 'Прекрасно! Вы получили 33% прогресса за верный расчет и выбор лучшей системы.';
+        }
+    }
+    function resetEverything() {
+        for(let k in fields) if(fields[k]) { fields[k].value = ''; fields[k].classList.remove('error-input'); }
+        selectedSystem = null; clearRowSelection(); progressFilled = false; lastCheckSuccess = false;
+        document.getElementById('progressFill').style.width = '0%'; document.getElementById('progressPercent').innerText = '0%';
+        document.getElementById('progressMessage').innerHTML = '';
+        document.getElementById('globalFeedback').innerHTML = ''; document.getElementById('globalFeedback').style.background = '#f8fafd';
+        document.getElementById('resultBtnContainer').style.display = 'none'; document.getElementById('lightbulbHint').style.display = 'none';
+        let det = document.getElementById('resultDetail'); if(det) det.remove();
+    }
+    function showResultDetails() {
+        if(!lastCheckSuccess) return;
+        const best = correctData.usn6_5, osnoTotal = correctData.osno.total, savings = osnoTotal - best.total;
+        const html = `<div style="background:#eef2fa; border-radius:16px; padding:12px; margin-top:10px; text-align:left;"><strong>📊 РЕЗУЛЬТАТ ОПТИМИЗАЦИИ:</strong><br>• Оптимальный режим: <strong>УСН «Доходы» 6% + НДС 5%</strong><br>• Общая нагрузка: <strong>${best.total.toLocaleString('ru-RU')} руб.</strong><br>• НДС: ${best.nds.toLocaleString('ru-RU')} руб.<br>• УСН: ${best.tax.toLocaleString('ru-RU')} руб.<br>• Взносы: ${best.ins.toLocaleString('ru-RU')} руб.<br>• Экономия: <strong style="color:#1c6f2f;">${savings.toLocaleString('ru-RU')} руб.</strong><br>• Нагрузка снижена с 30,6% до 10,62%.</div>`;
+        let old = document.getElementById('resultDetail'); if(old) old.remove();
+        let div = document.createElement('div'); div.id = 'resultDetail'; div.innerHTML = html;
+        document.getElementById('globalFeedback').appendChild(div);
+    }
+    attachRowClick();
+    document.getElementById('checkBtn').addEventListener('click', checkSolution);
+    document.getElementById('resetBtn').addEventListener('click', resetEverything);
+    document.getElementById('showResultBtn').addEventListener('click', showResultDetails);
+    document.getElementById('lightbulbHint')?.addEventListener('click', openModal);
+    document.querySelector('.close-modal')?.addEventListener('click', closeModal);
+    document.getElementById('correctModal')?.addEventListener('click', (e) => { if(e.target === document.getElementById('correctModal')) closeModal(); });
+    resetEverything();
+</script>
+</body>
+</html>
