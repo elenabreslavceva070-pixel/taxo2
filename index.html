@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Налоговый тренажер — Оптимизация 2027</title>
+    <title>Налоговый тренажер — Оптимизация 2027 (урок 1)</title>
     <style>
         * {
             margin: 0;
@@ -32,7 +32,6 @@
             border: 1px solid rgba(149, 202, 250, 0.4);
         }
 
-        /* компактное задание */
         .task-header {
             margin-bottom: 16px;
         }
@@ -81,7 +80,6 @@
             color: #1a5a7a;
         }
 
-        /* компактная таблица расчетов */
         .calc-wrapper {
             overflow-x: auto;
             margin: 16px 0 8px;
@@ -129,6 +127,11 @@
             border-color: #e06c6c;
             background-color: #fff6f5;
             box-shadow: 0 0 0 1px #e06c6c;
+        }
+        .input-cell input.correct-input {
+            border-color: #2b7a3e;
+            background-color: #e8f5e9;
+            box-shadow: 0 0 0 1px #2b7a3e;
         }
         .fixed-cell {
             background: #fafdff;
@@ -327,7 +330,6 @@
 </head>
 <body>
 <div class="trainer-container">
-    <!-- КОМПАКТНОЕ ЗАДАНИЕ (без желтой подложки) -->
     <div class="card">
         <div class="task-header">
             <p>К вам обратился Иван Петрович, владелец строительно-монтажной компании.<br>
@@ -349,13 +351,10 @@
         </div>
     </div>
 
-    <!-- Таблица расчетов (компактная) -->
     <div class="card">
         <div class="calc-wrapper">
             <table class="calc-table" id="taxTable">
-                <thead>
-                    <tr><th>Система налогообложения</th><th>НДС к уплате (руб.)</th><th>УСН / Налог на прибыль (руб.)</th><th>Страховые взносы (руб.)</th><th>ИТОГО платежей (руб.)</th></tr>
-                </thead>
+                <thead><tr><th>Система налогообложения</th><th>НДС к уплате (руб.)</th><th>УСН / Налог на прибыль (руб.)</th><th>Страховые взносы (руб.)</th><th>ИТОГО платежей (руб.)</th></tr></thead>
                 <tbody>
                     <tr data-system="osno" class="clickable-row"><td class="fixed-cell"><strong>ОСНО</strong></td>
                         <td class="input-cell"><input type="text" id="osno_nds" autocomplete="off"></td>
@@ -390,56 +389,43 @@
                 </tbody>
             </table>
         </div>
-        <div class="small-note">
-            💡 Заполните все ячейки, затем кликните на строку с режимом, который считаете лучшим. Нажмите «Проверить».
-        </div>
+        <div class="small-note">💡 Заполните все ячейки, затем кликните на строку с режимом, который считаете лучшим. Нажмите «Проверить».</div>
     </div>
 
-    <!-- Кнопки -->
     <div class="action-area">
         <button class="btn btn-primary" id="checkBtn">Проверить</button>
         <button class="btn btn-secondary" id="resetBtn">Начать заново</button>
     </div>
     <div id="globalFeedback" class="feedback-area" style="background: #f8fafd;"></div>
     
-    <!-- Лампочка-подсказка -->
     <div id="lightbulbHint" class="lightbulb-hint" style="display: none;">
         <div class="lightbulb-icon">💡</div>
-        <div class="lightbulb-content">
-            <span>Посмотреть верный расчет</span>
-        </div>
+        <div class="lightbulb-content"><span>Смотреть правильный ответ</span></div>
     </div>
 
-    <!-- Кнопка показа результата -->
     <div id="resultBtnContainer" class="result-btn">
         <button class="btn" id="showResultBtn">Посмотреть результат</button>
     </div>
 
-    <!-- Шкала прогресса -->
     <div class="progress-card">
         <div class="progress-label">
             <span>Прогресс курса «Выбираем способы налоговой экономии, которые не нарушают закон»</span>
             <span id="progressPercent">0%</span>
         </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <div class="progress-message" id="progressMessage"></div>
     </div>
 </div>
 
-<!-- Модальное окно с верной таблицей -->
 <div id="correctModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>Правильный ответ</h3>
-            <span class="close-modal">&times;</span>
-        </div>
+        <div class="modal-header"><h3>Правильный ответ</h3><span class="close-modal">&times;</span></div>
         <div class="correct-table-modal" id="modalTableContainer"></div>
     </div>
 </div>
 
 <script>
+    // ЭТАЛОННЫЕ ДАННЫЕ
     const correctData = {
         osno: { nds: 29855574, tax: 24483607, ins: 6000000, total: 60339181 },
         usn6_5: { nds: 9523810, tax: 5714285, ins: 6000000, total: 21238095 },
@@ -448,9 +434,13 @@
         usn15_22: { nds: 29855574, tax: 14690164, ins: 6000000, total: 50545738 }
     };
     const BEST_SYSTEM_KEY = "usn6_5";
+    
+    // ЕДИНОЕ ХРАНИЛИЩЕ ДЛЯ ВСЕХ УРОКОВ
+    const STORAGE_GLOBAL = "tax_trainer_global_progress";
+
     let selectedSystem = null;
-    let progressFilled = false;
-    let lastCheckSuccess = false;
+    let lesson1Completed = false;
+    let currentGlobalProgress = 0;
 
     const fields = {
         osno_nds: document.getElementById('osno_nds'), osno_profit: document.getElementById('osno_profit'),
@@ -465,27 +455,113 @@
         usn15_22_ins: document.getElementById('usn15_22_ins'), usn15_22_total: document.getElementById('usn15_22_total')
     };
 
-    function clearAllErrors() {
-        for (let key in fields) if (fields[key]) fields[key].classList.remove('error-input');
+    function loadGlobalProgress() {
+        const saved = localStorage.getItem(STORAGE_GLOBAL);
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                currentGlobalProgress = data.progress || 0;
+                if (data.lesson1 === true) lesson1Completed = true;
+                updateProgressBar(currentGlobalProgress);
+                if (lesson1Completed) {
+                    document.getElementById('lightbulbHint').style.display = 'none';
+                    document.getElementById('resultBtnContainer').style.display = 'block';
+                    const fb = document.getElementById('globalFeedback');
+                    if (!fb.innerHTML.includes('верно')) {
+                        fb.innerHTML = '✅ Вы уже прошли этот урок! Прогресс сохранен.';
+                        fb.style.background = '#dff0e3';
+                    }
+                }
+                return;
+            } catch(e) {}
+        }
+        currentGlobalProgress = 0;
+        updateProgressBar(0);
     }
-    function highlightErrors() {
-        clearAllErrors();
+
+    function saveGlobalProgress(completed) {
+        let newProgress = currentGlobalProgress;
+        if (completed && !lesson1Completed) {
+            newProgress = 33;
+            lesson1Completed = true;
+        }
+        const data = {
+            progress: newProgress,
+            lesson1: lesson1Completed,
+            lesson2: false  // пока не известно, будет обновлено вторым уроком
+        };
+        localStorage.setItem(STORAGE_GLOBAL, JSON.stringify(data));
+        currentGlobalProgress = newProgress;
+        updateProgressBar(currentGlobalProgress);
+    }
+
+    function updateProgressBar(percent) {
+        const fill = document.getElementById('progressFill');
+        const percentSpan = document.getElementById('progressPercent');
+        fill.style.width = percent + '%';
+        percentSpan.innerText = percent + '%';
+        const msgDiv = document.getElementById('progressMessage');
+        if (percent >= 66) {
+            msgDiv.innerHTML = 'Отлично! Вы прошли оба урока и набрали 66% прогресса. Остался последний урок.';
+        } else if (percent >= 33) {
+            msgDiv.innerHTML = 'Хорошо! Вы уже набрали 33% прогресса. Продолжайте в том же духе.';
+        } else {
+            msgDiv.innerHTML = 'Решите задачу правильно, чтобы получить 33% прогресса и перейти к следующему уроку.';
+        }
+    }
+
+    function saveLessonDraft() {
+        const draft = {};
+        for (let key in fields) if (fields[key]) draft[key] = fields[key].value;
+        draft.selectedSystem = selectedSystem;
+        localStorage.setItem('tax_trainer_lesson1_draft', JSON.stringify(draft));
+    }
+
+    function loadLessonDraft() {
+        const saved = localStorage.getItem('tax_trainer_lesson1_draft');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                for (let key in fields) if (fields[key] && data[key] !== undefined) fields[key].value = data[key];
+                if (data.selectedSystem) {
+                    selectedSystem = data.selectedSystem;
+                    highlightRow(selectedSystem);
+                    const fb = document.getElementById('globalFeedback');
+                    const row = document.querySelector(`.clickable-row[data-system="${selectedSystem}"]`);
+                    if (row) fb.innerHTML = `Выбран режим: ${row.querySelector('td:first-child')?.innerText.trim()}`;
+                    fb.style.background = "#f0f7fe";
+                }
+            } catch(e) {}
+        }
+    }
+
+    function highlightFields() {
         for (const [key, cor] of Object.entries(correctData)) {
-            let n, t, i, tot;
+            let n,t,i,tot;
             if (key === 'osno') { n=fields.osno_nds; t=fields.osno_profit; i=fields.osno_ins; tot=fields.osno_total; }
             else if (key === 'usn6_5') { n=fields.usn6_5_nds; t=fields.usn6_5_tax; i=fields.usn6_5_ins; tot=fields.usn6_5_total; }
             else if (key === 'usn6_22') { n=fields.usn6_22_nds; t=fields.usn6_22_tax; i=fields.usn6_22_ins; tot=fields.usn6_22_total; }
             else if (key === 'usn15_5') { n=fields.usn15_5_nds; t=fields.usn15_5_tax; i=fields.usn15_5_ins; tot=fields.usn15_5_total; }
-            else if (key === 'usn15_22') { n=fields.usn15_22_nds; t=fields.usn15_22_tax; i=fields.usn15_22_ins; tot=fields.usn15_22_total; }
             else continue;
-            const nv = parseFloat(n.value.replace(/\s/g,'')); const tv = parseFloat(t.value.replace(/\s/g,''));
-            const iv = parseFloat(i.value.replace(/\s/g,'')); const totv = parseFloat(tot.value.replace(/\s/g,''));
-            if (isNaN(nv) || Math.abs(nv - cor.nds) > 0.5) n.classList.add('error-input');
-            if (isNaN(tv) || Math.abs(tv - cor.tax) > 0.5) t.classList.add('error-input');
-            if (isNaN(iv) || Math.abs(iv - cor.ins) > 0.5) i.classList.add('error-input');
-            if (isNaN(totv) || Math.abs(totv - cor.total) > 0.5) tot.classList.add('error-input');
+            const nv = parseFloat(n.value.replace(/\s/g,''));
+            const tv = parseFloat(t.value.replace(/\s/g,''));
+            const iv = parseFloat(i.value.replace(/\s/g,''));
+            const totv = parseFloat(tot.value.replace(/\s/g,''));
+            n.classList.remove('correct-input', 'error-input');
+            t.classList.remove('correct-input', 'error-input');
+            i.classList.remove('correct-input', 'error-input');
+            tot.classList.remove('correct-input', 'error-input');
+            if (!isNaN(nv) && Math.abs(nv - cor.nds) <= 0.5) n.classList.add('correct-input');
+            else if (n.value.trim() !== '') n.classList.add('error-input');
+            if (!isNaN(tv) && Math.abs(tv - cor.tax) <= 0.5) t.classList.add('correct-input');
+            else if (t.value.trim() !== '') t.classList.add('error-input');
+            if (!isNaN(iv) && Math.abs(iv - cor.ins) <= 0.5) i.classList.add('correct-input');
+            else if (i.value.trim() !== '') i.classList.add('error-input');
+            if (!isNaN(totv) && Math.abs(totv - cor.total) <= 0.5) tot.classList.add('correct-input');
+            else if (tot.value.trim() !== '') tot.classList.add('error-input');
         }
     }
+
     function isAllCalculationsCorrect() {
         for (const [key, cor] of Object.entries(correctData)) {
             let n,t,i,tot;
@@ -493,23 +569,25 @@
             else if (key === 'usn6_5') { n=fields.usn6_5_nds; t=fields.usn6_5_tax; i=fields.usn6_5_ins; tot=fields.usn6_5_total; }
             else if (key === 'usn6_22') { n=fields.usn6_22_nds; t=fields.usn6_22_tax; i=fields.usn6_22_ins; tot=fields.usn6_22_total; }
             else if (key === 'usn15_5') { n=fields.usn15_5_nds; t=fields.usn15_5_tax; i=fields.usn15_5_ins; tot=fields.usn15_5_total; }
-            else if (key === 'usn15_22') { n=fields.usn15_22_nds; t=fields.usn15_22_tax; i=fields.usn15_22_ins; tot=fields.usn15_22_total; }
             else continue;
-            const nv = parseFloat(n.value.replace(/\s/g,'')); const tv = parseFloat(t.value.replace(/\s/g,''));
-            const iv = parseFloat(i.value.replace(/\s/g,'')); const totv = parseFloat(tot.value.replace(/\s/g,''));
-            if (isNaN(nv) || isNaN(tv) || isNaN(iv) || isNaN(totv)) return false;
-            if (Math.abs(nv - cor.nds) > 0.5) return false;
-            if (Math.abs(tv - cor.tax) > 0.5) return false;
-            if (Math.abs(iv - cor.ins) > 0.5) return false;
-            if (Math.abs(totv - cor.total) > 0.5) return false;
+            const nv = parseFloat(n.value.replace(/\s/g,''));
+            const tv = parseFloat(t.value.replace(/\s/g,''));
+            const iv = parseFloat(i.value.replace(/\s/g,''));
+            const totv = parseFloat(tot.value.replace(/\s/g,''));
+            if (isNaN(nv) || Math.abs(nv - cor.nds) > 0.5) return false;
+            if (isNaN(tv) || Math.abs(tv - cor.tax) > 0.5) return false;
+            if (isNaN(iv) || Math.abs(iv - cor.ins) > 0.5) return false;
+            if (isNaN(totv) || Math.abs(totv - cor.total) > 0.5) return false;
         }
         return true;
     }
+    
     function clearRowSelection() { document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('row-selected')); }
     function highlightRow(sys) {
         clearRowSelection();
         document.querySelectorAll('.clickable-row').forEach(r => { if(r.getAttribute('data-system')===sys) r.classList.add('row-selected'); });
     }
+    
     function attachRowClick() {
         document.querySelectorAll('.clickable-row').forEach(r => {
             r.addEventListener('click', (e) => {
@@ -518,12 +596,13 @@
                 highlightRow(selectedSystem);
                 document.getElementById('globalFeedback').innerHTML = `Выбран режим: ${r.querySelector('td:first-child')?.innerText.trim()}`;
                 document.getElementById('globalFeedback').style.background = "#f0f7fe";
+                saveLessonDraft();
             });
         });
     }
+    
     function renderCorrectTable() {
         const container = document.getElementById('modalTableContainer');
-        if(!container) return;
         let html = '<table><thead><tr><th>Система</th><th>НДС</th><th>УСН/Прибыль</th><th>Взносы</th><th>ИТОГО</th></tr></thead><tbody>';
         const labels = { osno:'ОСНО', usn6_5:'УСН Доходы 6% + НДС 5%', usn6_22:'УСН Доходы 6% + НДС 22%', usn15_5:'УСН Доходы-Расходы 15% + НДС 5%', usn15_22:'УСН Доходы-Расходы 15% + НДС 22%' };
         for(let [k,v] of Object.entries(correctData)) {
@@ -532,56 +611,70 @@
         html += '</tbody></table>';
         container.innerHTML = html;
     }
+    
     function openModal() { renderCorrectTable(); document.getElementById('correctModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('correctModal').style.display = 'none'; }
+
     function checkSolution() {
         const calcOk = isAllCalculationsCorrect();
         const bestSelected = (selectedSystem === BEST_SYSTEM_KEY);
         const fb = document.getElementById('globalFeedback');
         const resBtn = document.getElementById('resultBtnContainer');
         const bulb = document.getElementById('lightbulbHint');
-        highlightErrors();
+        
+        highlightFields();
+        
         if (!calcOk || !bestSelected) {
-            fb.innerHTML = !calcOk ? 'Проверьте расчеты и заполните заново.' : 'Неверно: выбранный режим не является оптимальным. Самый выгодный — УСН «Доходы» 6% + НДС 5%.';
+            fb.innerHTML = 'Вы заполнили показатели неверно.';
             fb.style.background = '#ffe6e2'; fb.style.color = '#ac3c2f';
-            lastCheckSuccess = false; resBtn.style.display = 'none'; bulb.style.display = 'flex';
+            resBtn.style.display = 'none'; bulb.style.display = 'flex';
+            saveLessonDraft();
             return;
         }
+        
         fb.innerHTML = 'Вы все рассчитали верно и выбрали оптимальный режим: УСН «Доходы» 6% + НДС 5%. Налоговая нагрузка минимальна.';
         fb.style.background = '#dff0e3'; fb.style.color = '#1c6f2f';
-        lastCheckSuccess = true; resBtn.style.display = 'block'; bulb.style.display = 'none';
-        if (!progressFilled) {
-            progressFilled = true;
-            document.getElementById('progressFill').style.width = '33%';
-            document.getElementById('progressPercent').innerText = '33%';
-            document.getElementById('progressMessage').innerHTML = 'Прекрасно! Вы получили 33% прогресса за верный расчет и выбор лучшей системы.';
+        resBtn.style.display = 'block'; bulb.style.display = 'none';
+        
+        if (!lesson1Completed) {
+            saveGlobalProgress(true);
         }
+        saveLessonDraft();
     }
+
     function resetEverything() {
-        for(let k in fields) if(fields[k]) { fields[k].value = ''; fields[k].classList.remove('error-input'); }
-        selectedSystem = null; clearRowSelection(); progressFilled = false; lastCheckSuccess = false;
-        document.getElementById('progressFill').style.width = '0%'; document.getElementById('progressPercent').innerText = '0%';
-        document.getElementById('progressMessage').innerHTML = '';
-        document.getElementById('globalFeedback').innerHTML = ''; document.getElementById('globalFeedback').style.background = '#f8fafd';
-        document.getElementById('resultBtnContainer').style.display = 'none'; document.getElementById('lightbulbHint').style.display = 'none';
-        let det = document.getElementById('resultDetail'); if(det) det.remove();
+        for(let k in fields) if(fields[k]) { fields[k].value = ''; fields[k].classList.remove('error-input', 'correct-input'); }
+        selectedSystem = null; clearRowSelection();
+        document.getElementById('globalFeedback').innerHTML = ''; 
+        document.getElementById('globalFeedback').style.background = '#f8fafd';
+        document.getElementById('resultBtnContainer').style.display = 'none'; 
+        document.getElementById('lightbulbHint').style.display = 'none';
+        saveLessonDraft();
     }
+
     function showResultDetails() {
-        if(!lastCheckSuccess) return;
         const best = correctData.usn6_5, osnoTotal = correctData.osno.total, savings = osnoTotal - best.total;
         const html = `<div style="background:#eef2fa; border-radius:16px; padding:12px; margin-top:10px; text-align:left;"><strong>📊 РЕЗУЛЬТАТ ОПТИМИЗАЦИИ:</strong><br>• Оптимальный режим: <strong>УСН «Доходы» 6% + НДС 5%</strong><br>• Общая нагрузка: <strong>${best.total.toLocaleString('ru-RU')} руб.</strong><br>• НДС: ${best.nds.toLocaleString('ru-RU')} руб.<br>• УСН: ${best.tax.toLocaleString('ru-RU')} руб.<br>• Взносы: ${best.ins.toLocaleString('ru-RU')} руб.<br>• Экономия: <strong style="color:#1c6f2f;">${savings.toLocaleString('ru-RU')} руб.</strong><br>• Нагрузка снижена с 30,6% до 10,62%.</div>`;
         let old = document.getElementById('resultDetail'); if(old) old.remove();
         let div = document.createElement('div'); div.id = 'resultDetail'; div.innerHTML = html;
         document.getElementById('globalFeedback').appendChild(div);
     }
+
+    function attachAutoSave() {
+        for (let key in fields) if (fields[key]) fields[key].addEventListener('input', () => saveLessonDraft());
+    }
+
+    loadGlobalProgress();
+    loadLessonDraft();
+    attachAutoSave();
     attachRowClick();
+    
     document.getElementById('checkBtn').addEventListener('click', checkSolution);
     document.getElementById('resetBtn').addEventListener('click', resetEverything);
     document.getElementById('showResultBtn').addEventListener('click', showResultDetails);
     document.getElementById('lightbulbHint')?.addEventListener('click', openModal);
     document.querySelector('.close-modal')?.addEventListener('click', closeModal);
     document.getElementById('correctModal')?.addEventListener('click', (e) => { if(e.target === document.getElementById('correctModal')) closeModal(); });
-    resetEverything();
 </script>
 </body>
 </html>
